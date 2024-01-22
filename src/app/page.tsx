@@ -2,7 +2,21 @@
 
 import Team from '@/components/Team';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import questions from '@/data/questions.json';
 import { useState } from 'react';
+
+const levels = questions.reduce((acc, question) => {
+  if (!acc.includes(question.difficulty.toUpperCase()))
+    acc.push(question.difficulty.toUpperCase());
+  return acc;
+}, [] as string[]);
 
 const Home = () => {
   const [teamAPoints, setTeamAPoints] = useState(() => {
@@ -64,6 +78,18 @@ const Home = () => {
         bg-slate-100 rounded-lg p-4
         '
         >
+          <Select>
+            <SelectTrigger className='w-[180px]'>
+              <SelectValue placeholder='Theme' />
+            </SelectTrigger>
+            <SelectContent>
+              {levels.map((level) => (
+                <SelectItem key={level} value={level}>
+                  {level}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <p className='text-3xl font-normal bg-zinc-200 p-4 rounded-lg text-center'>
             Como você explicaria o conceito de API para alguém que não é da
             área?
