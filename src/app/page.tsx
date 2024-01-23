@@ -65,18 +65,37 @@ const Home = () => {
   };
 
   const handleUpdateTeamAPoints = (newPoints: number) => {
-    if (newPoints < 0) return;
+    if (newPoints < 0) {
+      setTeamAPoints(0);
+      storage.setItem('teamAPoints', String(0));
+      setScoringTeam('A');
+      return;
+    }
     setTeamAPoints(newPoints);
     storage.setItem('teamAPoints', String(newPoints));
     setScoringTeam('A');
   };
 
   const handleUpdateTeamBPoints = (newPoints: number) => {
-    if (newPoints < 0) return;
+    if (newPoints < 0) {
+      setTeamBPoints(0);
+      storage.setItem('teamBPoints', String(0));
+      setScoringTeam('B');
+      return;
+    }
 
     setTeamBPoints(newPoints);
     storage.setItem('teamBPoints', String(newPoints));
     setScoringTeam('B');
+  };
+
+  const handleResetPoints = () => {
+    setTeamAPoints(0);
+    setTeamBPoints(0);
+    storage.setItem('teamAPoints', String(0));
+    storage.setItem('teamBPoints', String(0));
+    setQuestionIndex(null);
+    setUsedQuestion([]);
   };
 
   return (
@@ -143,12 +162,12 @@ const Home = () => {
             </div>
           </div>
 
-          <Button
-            onClick={getRandomQuestion}
-            className=''
-            variant='destructive'
-          >
+          <Button onClick={getRandomQuestion} variant='outline'>
             Nova pergunta
+          </Button>
+
+          <Button onClick={handleResetPoints} variant='destructive'>
+            Reiniciar
           </Button>
         </div>
       </div>
