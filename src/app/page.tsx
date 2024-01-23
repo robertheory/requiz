@@ -12,6 +12,7 @@ import {
 import { difficultyLevels } from '@/data';
 import questions from '@/data/questions.json';
 import { Question } from '@/interfaces';
+import { storage } from '@/utils/storage';
 import { useState } from 'react';
 
 const placeholderQuestion: Question = {
@@ -22,20 +23,20 @@ const placeholderQuestion: Question = {
 
 const Home = () => {
   const [teamAPoints, setTeamAPoints] = useState(() => {
-    const localTeamAPoints = localStorage.getItem('teamAPoints');
+    const localTeamAPoints = storage.getItem('teamAPoints');
 
     if (!localTeamAPoints) {
-      localStorage.setItem('teamAPoints', '0');
+      storage.setItem('teamAPoints', '0');
       return 0;
     }
 
     return Number(localTeamAPoints);
   });
   const [teamBPoints, setTeamBPoints] = useState(() => {
-    const localTeamBPoints = localStorage.getItem('teamBPoints');
+    const localTeamBPoints = storage.getItem('teamBPoints');
 
     if (!localTeamBPoints) {
-      localStorage.setItem('teamBPoints', '0');
+      storage.setItem('teamBPoints', '0');
       return 0;
     }
 
@@ -66,7 +67,7 @@ const Home = () => {
   const handleUpdateTeamAPoints = (newPoints: number) => {
     if (newPoints < 0) return;
     setTeamAPoints(newPoints);
-    localStorage.setItem('teamAPoints', String(newPoints));
+    storage.setItem('teamAPoints', String(newPoints));
     setScoringTeam('A');
   };
 
@@ -74,7 +75,7 @@ const Home = () => {
     if (newPoints < 0) return;
 
     setTeamBPoints(newPoints);
-    localStorage.setItem('teamBPoints', String(newPoints));
+    storage.setItem('teamBPoints', String(newPoints));
     setScoringTeam('B');
   };
 
