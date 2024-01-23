@@ -40,18 +40,49 @@ const Home = () => {
     return Number(localTeamBPoints);
   });
 
-  const handleUpdateTeamAPoints = (points: number) => {
-    if (points >= 0) {
-      setTeamAPoints(points);
-      localStorage.setItem('teamAPoints', String(points));
+  // questions handler
+  const [currentQuestion, setCurrentQuestion] = useState({
+    text: '',
+    difficulty: '',
+    points: 0,
+  });
+  const [usedQuestion, setUsedQuestion] = useState([] as number[]);
+  const [scoringTeam, setScoringTeam] = useState(''); // 'A' or 'B'
+
+  const getRandomQuestion = () => {
+    if (usedQuestion.length === questions.length) {
+      setUsedQuestion([]);
     }
+
+    setScoringTeam('');
+
+    let randomIndex;
+    do {
+      randomIndex = Math.floor(Math.random() * questions.length);
+    } while (usedQuestion.includes(randomIndex));
+
+    setUsedQuestion([...usedQuestion, randomIndex]);
+
+    const selectedQuestion = questions[randomIndex];
+    setCurrentQuestion({
+      text: selectedQuestion.question,
+      difficulty: selectedQuestion.difficulty,
+      points: selectedQuestion.points,
+    });
   };
 
-  const handleUpdateTeamBPoints = (points: number) => {
-    if (points >= 0) {
-      setTeamBPoints(points);
-      localStorage.setItem('teamBPoints', String(points));
-    }
+  const handleUpdateTeamAPoints = () => {
+    const updatedPoints = teamAPoints + currentQuestion.points;
+    setTeamAPoints(updatedPoints);
+    localStorage.setItem('teamAPoints', String(updatedPoints));
+    setScoringTeam('A');
+  };
+
+  const handleUpdateTeamBPoints = () => {
+    const updatedPoints = teamBPoints + currentQuestion.points;
+    setTeamBPoints(updatedPoints);
+    localStorage.setItem('teamBPoints', String(updatedPoints));
+    setScoringTeam('B');
   };
 
   return (
@@ -61,13 +92,13 @@ const Home = () => {
           name='Equipe A'
           color='#f9e169'
           points={teamAPoints}
-          handleUpdatePoints={handleUpdateTeamAPoints}
+          handleUpdatePoints={handleUpdateTeamAPoints} // Verificar como essa funcionalidade vai funcionar
         />
         <Team
           name='Equipe B'
           color='#fd67f3'
           points={teamBPoints}
-          handleUpdatePoints={handleUpdateTeamBPoints}
+          handleUpdatePoints={handleUpdateTeamBPoints} // Verificar como essa funcionalidade vai funcionar
         />
       </div>
 
@@ -91,23 +122,23 @@ const Home = () => {
             </SelectContent>
           </Select>
           <p className='text-3xl font-normal bg-zinc-200 p-4 rounded-lg text-center'>
-            Como você explicaria o conceito de API para alguém que não é da
-            área?
+            {currentQuestion.text || 'Selecione um tema e clique em "Nova Pergunta"'}
           </p>
+          <p>Dificuldade: {currentQuestion.difficulty}</p>
 
           <div className='flex flex-col justify-start items-center gap-4'>
             <h3 className='text-2xl font-bold'>Marcar ponto</h3>
             <div className='flex flex-row justify-center items-center gap-4'>
-              <Button onClick={() => handleUpdateTeamAPoints(teamAPoints + 1)}>
+              <Button onClick={handleUpdateTeamAPoints} disabled={scoringTeam != ''}>
                 Equipe A
               </Button>
-              <Button onClick={() => handleUpdateTeamBPoints(teamBPoints + 1)}>
+              <Button onClick={handleUpdateTeamBPoints} disabled={scoringTeam != ''}>
                 Equipe B
               </Button>
             </div>
           </div>
 
-          <Button className='' variant='destructive'>
+          <Button onClick={getRandomQuestion} className='' variant='destructive'>
             Nova pergunta
           </Button>
         </div>
