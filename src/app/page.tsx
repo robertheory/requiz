@@ -9,14 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { difficultyLevels } from '@/data';
 import questions from '@/data/questions.json';
 import { useState } from 'react';
-
-const levels = questions.reduce((acc, question) => {
-  if (!acc.includes(question.difficulty.toUpperCase()))
-    acc.push(question.difficulty.toUpperCase());
-  return acc;
-}, [] as string[]);
 
 const Home = () => {
   const [teamAPoints, setTeamAPoints] = useState(() => {
@@ -71,17 +66,18 @@ const Home = () => {
     });
   };
 
-  const handleUpdateTeamAPoints = () => {
-    const updatedPoints = teamAPoints + currentQuestion.points;
-    setTeamAPoints(updatedPoints);
-    localStorage.setItem('teamAPoints', String(updatedPoints));
+  const handleUpdateTeamAPoints = (newPoints: number) => {
+    if (newPoints < 0) return;
+    setTeamAPoints(newPoints);
+    localStorage.setItem('teamAPoints', String(newPoints));
     setScoringTeam('A');
   };
 
-  const handleUpdateTeamBPoints = () => {
-    const updatedPoints = teamBPoints + currentQuestion.points;
-    setTeamBPoints(updatedPoints);
-    localStorage.setItem('teamBPoints', String(updatedPoints));
+  const handleUpdateTeamBPoints = (newPoints: number) => {
+    if (newPoints < 0) return;
+
+    setTeamBPoints(newPoints);
+    localStorage.setItem('teamBPoints', String(newPoints));
     setScoringTeam('B');
   };
 
@@ -92,13 +88,13 @@ const Home = () => {
           name='Equipe A'
           color='#f9e169'
           points={teamAPoints}
-          handleUpdatePoints={handleUpdateTeamAPoints} // Verificar como essa funcionalidade vai funcionar
+          handleUpdatePoints={handleUpdateTeamAPoints}
         />
         <Team
           name='Equipe B'
           color='#fd67f3'
           points={teamBPoints}
-          handleUpdatePoints={handleUpdateTeamBPoints} // Verificar como essa funcionalidade vai funcionar
+          handleUpdatePoints={handleUpdateTeamBPoints}
         />
       </div>
 
@@ -111,10 +107,11 @@ const Home = () => {
         >
           <Select>
             <SelectTrigger className='w-[180px]'>
-              <SelectValue placeholder='Theme' />
+              <SelectValue placeholder='Dificuldade' />
             </SelectTrigger>
             <SelectContent>
-              {levels.map((level) => (
+              <SelectItem value='null'>Todos</SelectItem>
+              {difficultyLevels.map((level) => (
                 <SelectItem key={level} value={level}>
                   {level}
                 </SelectItem>
@@ -122,23 +119,38 @@ const Home = () => {
             </SelectContent>
           </Select>
           <p className='text-3xl font-normal bg-zinc-200 p-4 rounded-lg text-center'>
-            {currentQuestion.text || 'Selecione um tema e clique em "Nova Pergunta"'}
+            {currentQuestion.text ||
+              'Selecione um tema e clique em "Nova Pergunta"'}
           </p>
           <p>Dificuldade: {currentQuestion.difficulty}</p>
 
           <div className='flex flex-col justify-start items-center gap-4'>
             <h3 className='text-2xl font-bold'>Marcar ponto</h3>
             <div className='flex flex-row justify-center items-center gap-4'>
-              <Button onClick={handleUpdateTeamAPoints} disabled={scoringTeam != ''}>
+              <Button
+                onClick={() =>
+                  handleUpdateTeamAPoints(teamAPoints + currentQuestion.points)
+                }
+                disabled={scoringTeam != ''}
+              >
                 Equipe A
               </Button>
-              <Button onClick={handleUpdateTeamBPoints} disabled={scoringTeam != ''}>
+              <Button
+                onClick={() =>
+                  handleUpdateTeamBPoints(teamBPoints + currentQuestion.points)
+                }
+                disabled={scoringTeam != ''}
+              >
                 Equipe B
               </Button>
             </div>
           </div>
 
-          <Button onClick={getRandomQuestion} className='' variant='destructive'>
+          <Button
+            onClick={getRandomQuestion}
+            className=''
+            variant='destructive'
+          >
             Nova pergunta
           </Button>
         </div>
