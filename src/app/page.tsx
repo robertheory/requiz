@@ -11,7 +11,14 @@ import {
 } from '@/components/ui/select';
 import { difficultyLevels } from '@/data';
 import questions from '@/data/questions.json';
+import { Question } from '@/interfaces';
 import { useState } from 'react';
+
+const placeholderQuestion: Question = {
+  question: 'Selecione um tema e clique em Nova Pergunta para começar',
+  difficulty: '🤔',
+  points: 0,
+};
 
 const Home = () => {
   const [teamAPoints, setTeamAPoints] = useState(() => {
@@ -34,13 +41,12 @@ const Home = () => {
 
     return Number(localTeamBPoints);
   });
+  const [questionIndex, setQuestionIndex] = useState<null | number>(null);
 
-  // questions handler
-  const [currentQuestion, setCurrentQuestion] = useState({
-    text: '',
-    difficulty: '',
-    points: 0,
-  });
+  const question = questionIndex
+    ? questions[questionIndex]
+    : placeholderQuestion;
+
   const [usedQuestion, setUsedQuestion] = useState([] as number[]);
   const [scoringTeam, setScoringTeam] = useState(''); // 'A' or 'B'
 
@@ -51,19 +57,10 @@ const Home = () => {
 
     setScoringTeam('');
 
-    let randomIndex;
-    do {
-      randomIndex = Math.floor(Math.random() * questions.length);
-    } while (usedQuestion.includes(randomIndex));
+    const randomIndex = Math.floor(Math.random() * questions.length);
 
     setUsedQuestion([...usedQuestion, randomIndex]);
-
-    const selectedQuestion = questions[randomIndex];
-    setCurrentQuestion({
-      text: selectedQuestion.question,
-      difficulty: selectedQuestion.difficulty,
-      points: selectedQuestion.points,
-    });
+    setQuestionIndex(randomIndex);
   };
 
   const handleUpdateTeamAPoints = (newPoints: number) => {
@@ -119,17 +116,16 @@ const Home = () => {
             </SelectContent>
           </Select>
           <p className='text-3xl font-normal bg-zinc-200 p-4 rounded-lg text-center'>
-            {currentQuestion.text ||
-              'Selecione um tema e clique em "Nova Pergunta"'}
+            {question.question}
           </p>
-          <p>Dificuldade: {currentQuestion.difficulty}</p>
+          <p>Dificuldade: {question.difficulty}</p>
 
           <div className='flex flex-col justify-start items-center gap-4'>
             <h3 className='text-2xl font-bold'>Marcar ponto</h3>
             <div className='flex flex-row justify-center items-center gap-4'>
               <Button
                 onClick={() =>
-                  handleUpdateTeamAPoints(teamAPoints + currentQuestion.points)
+                  handleUpdateTeamAPoints(teamAPoints + question.points)
                 }
                 disabled={scoringTeam != ''}
               >
@@ -137,7 +133,7 @@ const Home = () => {
               </Button>
               <Button
                 onClick={() =>
-                  handleUpdateTeamBPoints(teamBPoints + currentQuestion.points)
+                  handleUpdateTeamBPoints(teamBPoints + question.points)
                 }
                 disabled={scoringTeam != ''}
               >
