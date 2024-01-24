@@ -111,15 +111,46 @@ const Home = () => {
 
   return (
     <div className='w-full h-screen flex flex-col justify-start items-center gap-4 bg-slate-800'>
-      <div className='w-full flex-1 flex flex-row justify-between items-start'>
-        <Team name='Equipe A' color='#f9e169' points={teamAPoints} />
-        <Team name='Equipe B' color='#fd67f3' points={teamBPoints} />
+      <div className='w-full flex flex-row justify-center items-center fixed top-2'>
+        <h1 className='text-4xl text-white font-black bg-zinc-800 p-4 rounded-lg '>
+          Round {rounds.length}
+        </h1>
       </div>
 
-      <div className='fixed bottom-0 left-0 w-full flex flex-col justify-center items-center p-4'>
+      <div className='w-full flex-1 flex flex-row justify-center items-center'>
+        <Team
+          name='Equipe A'
+          color='#f9e169'
+          points={teamAPoints}
+          handleScore={() => handleSetWinner('A')}
+        />
+        <Team
+          name='Equipe B'
+          color='#fd67f3'
+          points={teamBPoints}
+          handleScore={() => handleSetWinner('B')}
+        />
+      </div>
+
+      <div className='fixed bottom-0 left-0 w-full flex flex-col justify-center items-center p-4 gap-4'>
         <div
           className='
-        w-full max-w-[800px] flex flex-col justify-center items-center gap-4
+        w-fit max-w-[1200px] flex flex-col justify-center items-center gap-4
+        bg-slate-100 rounded-lg p-4
+        '
+        >
+          <p className='text-3xl font-normal bg-zinc-200 p-4 rounded-lg text-center'>
+            {currentRound.question.text}
+          </p>
+          <p className='w-full text-center text-xl font-light'>
+            Dificuldade da pergunta: {currentRound.question.difficulty} (
+            {currentRound.question.points} pts)
+          </p>
+        </div>
+
+        <div
+          className='
+        w-fit max-w-[400px] flex flex-col justify-center items-center gap-4
         bg-slate-100 rounded-lg p-4
         '
         >
@@ -130,7 +161,7 @@ const Home = () => {
                 : setSelectedDifficulty(null)
             }
           >
-            <SelectTrigger className='w-[180px]'>
+            <SelectTrigger className='w-full'>
               <SelectValue placeholder='Dificuldade' />
             </SelectTrigger>
             <SelectContent>
@@ -142,42 +173,16 @@ const Home = () => {
               ))}
             </SelectContent>
           </Select>
-          <p className='text-3xl font-normal bg-zinc-200 p-4 rounded-lg text-center'>
-            {currentRound.question.text}
-          </p>
-          <p>Dificuldade: {currentRound.question.difficulty}</p>
 
-          <div className='flex flex-col justify-start items-center gap-4'>
-            <h3 className='text-2xl font-bold'>Marcar ponto</h3>
-            <div className='flex flex-row justify-center items-center gap-4'>
-              <Button
-                onClick={() => handleSetWinner('A')}
-                className={`${
-                  currentRound.winner === 'A' &&
-                  'bg-green-600 hover:bg-green-700'
-                }`}
-              >
-                Equipe A
-              </Button>
-              <Button
-                onClick={() => handleSetWinner('B')}
-                className={`${
-                  currentRound.winner === 'B' &&
-                  'bg-green-600 hover:bg-green-700'
-                }`}
-              >
-                Equipe B
-              </Button>
-            </div>
+          <div className='w-full flex flex-row justify-center items-center gap-8'>
+            <Button onClick={handleInitRound} variant='outline'>
+              Novo round
+            </Button>
+
+            <Button onClick={handleResetGame} variant='destructive'>
+              Reiniciar
+            </Button>
           </div>
-
-          <Button onClick={handleInitRound} variant='outline'>
-            Novo round
-          </Button>
-
-          <Button onClick={handleResetGame} variant='destructive'>
-            Reiniciar
-          </Button>
         </div>
       </div>
     </div>
