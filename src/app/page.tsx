@@ -9,110 +9,111 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { difficultyLevels } from '@/data';
-import questions from '@/data/questions.json';
-import { Question } from '@/interfaces';
+import { difficultyLevels, placeholderRound } from '@/data';
+import { questions as staticQuestionList } from '@/data/questions';
+import {
+  DifficultyLevelEnum,
+  DifficultyLevelType,
+  Question,
+  Round,
+} from '@/interfaces';
 import { storage } from '@/utils/storage';
 import { useState } from 'react';
 
-const placeholderQuestion: Question = {
-  question: 'Selecione um tema e clique em Nova Pergunta para começar',
-  difficulty: '🤔',
-  points: 0,
-};
-
 const Home = () => {
-  const [teamAPoints, setTeamAPoints] = useState(() => {
-    const localTeamAPoints = storage.getItem('teamAPoints');
+  const [selectedDifficulty, setSelectedDifficulty] =
+    useState<null | DifficultyLevelType>(null);
 
-    if (!localTeamAPoints) {
-      storage.setItem('teamAPoints', '0');
-      return 0;
+  const localQuestions = storage.getItem('questions');
+
+  const [gameQuestions, setGameQuestions] = useState<Question[]>(() => {
+    if (!localQuestions) {
+      storage.setItem('questions', JSON.stringify(staticQuestionList));
+      return staticQuestionList;
     }
 
-    return Number(localTeamAPoints);
+    return JSON.parse(localQuestions);
   });
-  const [teamBPoints, setTeamBPoints] = useState(() => {
-    const localTeamBPoints = storage.getItem('teamBPoints');
 
-    if (!localTeamBPoints) {
-      storage.setItem('teamBPoints', '0');
-      return 0;
+  const questions = selectedDifficulty
+    ? gameQuestions.filter((q) => q.difficulty === selectedDifficulty)
+    : gameQuestions;
+
+  const [rounds, setRounds] = useState<Round[]>(() => {
+    const localRounds = storage.getItem('rounds');
+
+    if (!localRounds) {
+      storage.setItem('rounds', JSON.stringify([]));
+      return [];
     }
 
-    return Number(localTeamBPoints);
+    return JSON.parse(localRounds);
   });
-  const [questionIndex, setQuestionIndex] = useState<null | number>(null);
 
-  const question = questionIndex
-    ? questions[questionIndex]
-    : placeholderQuestion;
+  const currentRound = rounds.length
+    ? rounds[rounds.length - 1]
+    : placeholderRound;
 
-  const [usedQuestion, setUsedQuestion] = useState([] as number[]);
-  const [scoringTeam, setScoringTeam] = useState(''); // 'A' or 'B'
-
-  const getRandomQuestion = () => {
-    if (usedQuestion.length === questions.length) {
-      setUsedQuestion([]);
+  const teamAPoints = rounds.reduce((acc, round) => {
+    if (round.winner === 'A') {
+      return acc + round.question.points;
     }
+    return acc;
+  }, 0);
 
-    setScoringTeam('');
+  const teamBPoints = rounds.reduce((acc, round) => {
+    if (round.winner === 'B') {
+      return acc + round.question.points;
+    }
+    return acc;
+  }, 0);
 
-    const randomIndex = Math.floor(Math.random() * questions.length);
-
-    setUsedQuestion([...usedQuestion, randomIndex]);
-    setQuestionIndex(randomIndex);
+  const handleRemoveQuestion = (question: Question) => {
+    const newQuestions = gameQuestions.filter((q) => q.id !== question.id);
+    setGameQuestions(newQuestions);
+    storage.setItem('questions', JSON.stringify(newQuestions));
   };
 
-  const handleUpdateTeamAPoints = (newPoints: number) => {
-    if (newPoints < 0) {
-      setTeamAPoints(0);
-      storage.setItem('teamAPoints', String(0));
-      setScoringTeam('A');
-      return;
-    }
-    setTeamAPoints(newPoints);
-    storage.setItem('teamAPoints', String(newPoints));
-    setScoringTeam('A');
+  const handleInitRound = () => {
+    const questionRandomIndex = Math.floor(Math.random() * questions.length);
+
+    const newQuestion = questions[questionRandomIndex];
+
+    handleRemoveQuestion(newQuestion);
+
+    const newRound: Round = {
+      question: newQuestion,
+      winner: 'NONE',
+      index: rounds.length,
+    };
+
+    const newRounds = [...rounds, newRound];
+    setRounds(newRounds);
+    storage.setItem('rounds', JSON.stringify(newRounds));
   };
 
-  const handleUpdateTeamBPoints = (newPoints: number) => {
-    if (newPoints < 0) {
-      setTeamBPoints(0);
-      storage.setItem('teamBPoints', String(0));
-      setScoringTeam('B');
-      return;
-    }
+  const handleSetWinner = (winner: 'A' | 'B') => {
+    const newRound = { ...currentRound, winner };
 
-    setTeamBPoints(newPoints);
-    storage.setItem('teamBPoints', String(newPoints));
-    setScoringTeam('B');
+    const newRounds = [...rounds];
+
+    newRounds.splice(newRounds.length - 1, 1, newRound);
+
+    setRounds(newRounds);
+    storage.setItem('rounds', JSON.stringify(newRounds));
   };
 
-  const handleResetPoints = () => {
-    setTeamAPoints(0);
-    setTeamBPoints(0);
-    storage.setItem('teamAPoints', String(0));
-    storage.setItem('teamBPoints', String(0));
-    setQuestionIndex(null);
-    setUsedQuestion([]);
+  const handleResetGame = () => {
+    const newRounds: Round[] = [];
+    setRounds(newRounds);
+    storage.setItem('rounds', JSON.stringify(newRounds));
   };
 
   return (
     <div className='w-full h-screen flex flex-col justify-start items-center gap-4 bg-slate-800'>
       <div className='w-full flex-1 flex flex-row justify-between items-start'>
-        <Team
-          name='Equipe A'
-          color='#f9e169'
-          points={teamAPoints}
-          handleUpdatePoints={handleUpdateTeamAPoints}
-        />
-        <Team
-          name='Equipe B'
-          color='#fd67f3'
-          points={teamBPoints}
-          handleUpdatePoints={handleUpdateTeamBPoints}
-        />
+        <Team name='Equipe A' color='#f9e169' points={teamAPoints} />
+        <Team name='Equipe B' color='#fd67f3' points={teamBPoints} />
       </div>
 
       <div className='fixed bottom-0 left-0 w-full flex flex-col justify-center items-center p-4'>
@@ -122,7 +123,13 @@ const Home = () => {
         bg-slate-100 rounded-lg p-4
         '
         >
-          <Select>
+          <Select
+            onValueChange={(value: DifficultyLevelType | 'null') =>
+              value !== 'null'
+                ? setSelectedDifficulty(DifficultyLevelEnum[value])
+                : setSelectedDifficulty(null)
+            }
+          >
             <SelectTrigger className='w-[180px]'>
               <SelectValue placeholder='Dificuldade' />
             </SelectTrigger>
@@ -136,37 +143,39 @@ const Home = () => {
             </SelectContent>
           </Select>
           <p className='text-3xl font-normal bg-zinc-200 p-4 rounded-lg text-center'>
-            {question.question}
+            {currentRound.question.text}
           </p>
-          <p>Dificuldade: {question.difficulty}</p>
+          <p>Dificuldade: {currentRound.question.difficulty}</p>
 
           <div className='flex flex-col justify-start items-center gap-4'>
             <h3 className='text-2xl font-bold'>Marcar ponto</h3>
             <div className='flex flex-row justify-center items-center gap-4'>
               <Button
-                onClick={() =>
-                  handleUpdateTeamAPoints(teamAPoints + question.points)
-                }
-                disabled={scoringTeam != ''}
+                onClick={() => handleSetWinner('A')}
+                className={`${
+                  currentRound.winner === 'A' &&
+                  'bg-green-600 hover:bg-green-700'
+                }`}
               >
                 Equipe A
               </Button>
               <Button
-                onClick={() =>
-                  handleUpdateTeamBPoints(teamBPoints + question.points)
-                }
-                disabled={scoringTeam != ''}
+                onClick={() => handleSetWinner('B')}
+                className={`${
+                  currentRound.winner === 'B' &&
+                  'bg-green-600 hover:bg-green-700'
+                }`}
               >
                 Equipe B
               </Button>
             </div>
           </div>
 
-          <Button onClick={getRandomQuestion} variant='outline'>
-            Nova pergunta
+          <Button onClick={handleInitRound} variant='outline'>
+            Novo round
           </Button>
 
-          <Button onClick={handleResetPoints} variant='destructive'>
+          <Button onClick={handleResetGame} variant='destructive'>
             Reiniciar
           </Button>
         </div>

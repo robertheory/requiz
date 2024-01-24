@@ -1,16 +1,12 @@
 'use client';
 
-import { FiMinus, FiPlus } from 'react-icons/fi';
-import { Button } from './ui/button';
-
 type TeamProps = {
   name: string;
   color: string;
   points: number;
-  handleUpdatePoints: (points: number) => void;
 };
 
-const Team = ({ color, name, points, handleUpdatePoints }: TeamProps) => {
+const Team = ({ color, name, points }: TeamProps) => {
   return (
     <div
       style={{
@@ -43,7 +39,7 @@ const Team = ({ color, name, points, handleUpdatePoints }: TeamProps) => {
           {points} {points === 1 ? 'ponto' : 'pontos'}
         </h3>
 
-        <div className='flex flex-row justify-center items-center gap-4'>
+        {/* <div className='flex flex-row justify-center items-center gap-4'>
           <Button onClick={() => handleUpdatePoints(points - 1)}>
             <FiMinus />
           </Button>
@@ -51,7 +47,7 @@ const Team = ({ color, name, points, handleUpdatePoints }: TeamProps) => {
           <Button onClick={() => handleUpdatePoints(points + 1)}>
             <FiPlus />
           </Button>
-        </div>
+        </div> */}
       </div>
     </div>
   );
